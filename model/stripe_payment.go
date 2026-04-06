@@ -10,7 +10,7 @@ import (
 // This prevents double-crediting a user if Stripe sends the webhook more than once.
 type StripePayment struct {
 	Id        int    `json:"id" gorm:"primaryKey;autoIncrement"`
-	SessionId string `json:"session_id" gorm:"uniqueIndex;not null"` // Stripe checkout session ID
+	SessionId string `json:"session_id" gorm:"type:varchar(255);uniqueIndex;not null"` // Stripe checkout session ID
 	UserId    int    `json:"user_id" gorm:"index;not null"`
 	Amount    int64  `json:"amount" gorm:"not null"` // Amount in cents
 	Quota     int64  `json:"quota" gorm:"not null"`  // Quota credited
