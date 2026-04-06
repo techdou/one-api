@@ -10,6 +10,11 @@ import (
 )
 
 func SetApiRouter(router *gin.Engine) {
+	// Stripe/Alipay webhooks MUST be registered before the gzip middleware group
+	// because gzip might alter the payload body used for signature verification.
+	router.POST("/api/user/pay/stripe/webhook", controller.StripeWebhook)
+	router.POST("/api/user/pay/alipay/webhook", controller.AlipayWebhook)
+
 	apiRouter := router.Group("/api")
 	apiRouter.Use(gzip.Gzip(gzip.DefaultCompression))
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
@@ -47,6 +52,8 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/token", controller.GenerateAccessToken)
 				selfRoute.GET("/aff", controller.GetAffCode)
 				selfRoute.POST("/topup", controller.TopUp)
+				selfRoute.POST("/pay/stripe/create", controller.CreateStripeCheckoutSession)
+				selfRoute.POST("/pay/alipay/create", controller.CreateAlipayCheckoutSession)
 				selfRoute.GET("/available_models", controller.GetUserAvailableModels)
 			}
 

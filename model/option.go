@@ -62,6 +62,12 @@ func InitOptionMap() {
 	config.OptionMap["MessagePusherToken"] = ""
 	config.OptionMap["TurnstileSiteKey"] = ""
 	config.OptionMap["TurnstileSecretKey"] = ""
+	config.OptionMap["StripeSecretKey"] = ""
+	config.OptionMap["StripeWebhookSecret"] = ""
+	config.OptionMap["AlipayAppId"] = ""
+	config.OptionMap["AlipayPublicKey"] = ""
+	config.OptionMap["AlipayPrivateKey"] = ""
+	config.OptionMap["PayRateRMB"] = strconv.FormatFloat(config.PayRateRMB, 'f', -1, 64)
 	config.OptionMap["QuotaForNewUser"] = strconv.FormatInt(config.QuotaForNewUser, 10)
 	config.OptionMap["QuotaForInviter"] = strconv.FormatInt(config.QuotaForInviter, 10)
 	config.OptionMap["QuotaForInvitee"] = strconv.FormatInt(config.QuotaForInvitee, 10)
@@ -211,6 +217,18 @@ func updateOptionMap(key string, value string) (err error) {
 		config.TurnstileSiteKey = value
 	case "TurnstileSecretKey":
 		config.TurnstileSecretKey = value
+	case "StripeSecretKey":
+		config.StripeSecretKey = value
+	case "StripeWebhookSecret":
+		config.StripeWebhookSecret = value
+	case "AlipayAppId":
+		config.AlipayAppId = value
+	case "AlipayPublicKey":
+		config.AlipayPublicKey = value
+	case "AlipayPrivateKey":
+		config.AlipayPrivateKey = value
+	case "PayRateRMB":
+		config.PayRateRMB, _ = strconv.ParseFloat(value, 64)
 	case "QuotaForNewUser":
 		config.QuotaForNewUser, _ = strconv.ParseInt(value, 10, 64)
 	case "QuotaForInviter":

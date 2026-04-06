@@ -735,8 +735,8 @@
   },
   "home": {
     "welcome": {
-      "title": "Welcome to One API",
-      "description": "One API is a LLM API management and distribution system that helps you better manage and use LLM APIs from various providers.",
+      "title": "Welcome to {{name}}",
+      "description": "{{name}} is a LLM API management and distribution system that helps you better manage and use LLM APIs from various providers.",
       "login_notice": "To use the service, please login or register first."
     },
     "system_status": {
@@ -747,7 +747,7 @@
         "version": "Version: ",
         "source": "Source: ",
         "source_link": "GitHub Repository",
-        "start_time": "Start Time: "
+        "start_time": "Uptime Since: "
       },
       "config": {
         "title": "System Configuration",
@@ -755,8 +755,8 @@
         "github_oauth": "GitHub OAuth: ",
         "wechat_login": "WeChat Login: ",
         "turnstile": "Turnstile Check: ",
-        "enabled": "Enabled",
-        "disabled": "Disabled"
+        "enabled": "ON",
+        "disabled": "OFF"
       }
     },
     "loading_failed": "Failed to load homepage content..."
@@ -806,8 +806,8 @@
   },
   "about": {
     "title": "About",
-    "description": "One API is an open-source API management and proxy platform.",
-    "repository": "Repository: ",
+    "description": "瓦兰卡 is an open-source API management and proxy platform.",
+    "repository": "Project Repository:",
     "loading_failed": "Loading failed"
   },
   "messages": {

@@ -1,70 +1,117 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
-import {Card, Grid} from 'semantic-ui-react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Card, Grid, Statistic } from 'semantic-ui-react';
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  Bar, BarChart, CartesianGrid,
+  Legend, Line, LineChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import axios from 'axios';
 import './Dashboard.css';
 
-// 在 Dashboard 组件内添加自定义配置
+// ============================================
+// CHART CONFIG — Precision SaaS Lite
+// ============================================
 const chartConfig = {
-  lineChart: {
-    style: {
-      background: '#fff',
-      borderRadius: '8px',
-    },
-    line: {
-      strokeWidth: 2,
-      dot: false,
-      activeDot: { r: 4 },
-    },
-    grid: {
-      vertical: false,
-      horizontal: true,
-      opacity: 0.1,
-    },
-  },
   colors: {
-    requests: '#4318FF',
-    quota: '#00B5D8',
-    tokens: '#6C63FF',
+    requests: '#0D9488',  // Teal brand
+    quota:    '#F59E0B',  // Amber accent
+    tokens:   '#3B82F6',  // Blue info
   },
   barColors: [
-    '#4318FF', // 深紫色
-    '#00B5D8', // 青色
-    '#6C63FF', // 紫色
-    '#05CD99', // 绿色
-    '#FFB547', // 橙色
-    '#FF5E7D', // 粉色
-    '#41B883', // 翠绿
-    '#7983FF', // 淡紫
-    '#FF8F6B', // 珊瑚色
-    '#49BEFF', // 天蓝
+    '#0D9488', '#F59E0B', '#3B82F6', '#10B981',
+    '#8B5CF6', '#EF4444', '#F97316', '#06B6D4',
   ],
+  lineChart: {
+    line: { strokeWidth: 2.5, dot: false, activeDot: { r: 5 } },
+    grid: { vertical: false, horizontal: true, opacity: 0.08 },
+  },
 };
 
-const Dashboard = () => {
-  const { t } = useTranslation();
-  const [data, setData] = useState([]);
-  const [summaryData, setSummaryData] = useState({
-    todayRequests: 0,
-    todayQuota: 0,
-    todayTokens: 0,
-  });
+// ============================================
+// CUSTOM TOOLTIP
+// ============================================
+const CustomTooltip = ({ active, payload, label, formatter, labelFormatter }) => {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div style={{
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--border-default)',
+      borderRadius: 'var(--radius-md)',
+      padding: '10px 14px',
+      boxShadow: 'var(--shadow-lg)',
+      fontSize: '12px',
+      fontFamily: 'Inter, sans-serif',
+    }}>
+      <div style={{ color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>
+        {labelFormatter ? labelFormatter(label) : label}
+      </div>
+      {payload.map((entry, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, display: 'inline-block', flexShrink: 0 }} />
+          <span style={{ color: 'var(--text-muted)' }}>{entry.name}:</span>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {Array.isArray(formatter) ? formatter[i]?.(entry.value) : entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+// ============================================
+// MINI LINE CHART (for stat cards)
+// ============================================
+const MiniLineChart = ({ data, dataKey, color }) => {
+  const xAxisConfig = {
+    dataKey: 'date', axisLine: false, tickLine: false,
+    tick: { fontSize: 0, fill: 'transparent' },
+    interval: 'preserveStartEnd',
+  };
+  return (
+    <ResponsiveContainer width="100%" height={60} margin={{ left: -10, right: -10 }}>
+      <LineChart data={data} {...xAxisConfig}>
+        <Tooltip content={<></>} />
+        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
+
+// ============================================
+// STAT CARD
+// ============================================
+const StatCard = ({ icon, value, label, color, chartData, chartKey, isZh }) => (
+  <Card className="stat-card" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` }}>
+    <Card.Content>
+      <div className="stat-card-icon"><i className={`${icon} icon`} style={{ margin: 0 }} /></div>
+      <Statistic>
+        <Statistic.Value style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.7rem', fontWeight: 800, letterSpacing: '-0.5px' }}>
+          {value}
+        </Statistic.Value>
+        <Statistic.Label style={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', letterSpacing: '0.8px', textTransform: 'uppercase', fontWeight: 600 }}>
+          {label}
+        </Statistic.Label>
+      </Statistic>
+      {chartData && chartData.length > 0 && (
+        <div style={{ marginTop: '8px', opacity: 0.6 }}>
+          <MiniLineChart data={chartData} dataKey={chartKey} color="#fff" />
+        </div>
+      )}
+    </Card.Content>
+  </Card>
+);
+
+// ============================================
+// MAIN DASHBOARD
+// ============================================
+const Dashboard = () => {
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
+  const [data, setData] = useState([]);
+  const [summaryData, setSummaryData] = useState({ todayRequests: 0, todayQuota: 0, todayTokens: 0 });
+
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -74,385 +121,222 @@ const Dashboard = () => {
         setData(dashboardData);
         calculateSummary(dashboardData);
       }
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-      setData([]);
-      calculateSummary([]);
+    } catch {
+      setData([]); calculateSummary([]);
     }
   };
 
   const calculateSummary = (dashboardData) => {
-    if (!Array.isArray(dashboardData) || dashboardData.length === 0) {
-      setSummaryData({
-        todayRequests: 0,
-        todayQuota: 0,
-        todayTokens: 0,
-      });
-      return;
+    if (!Array.isArray(dashboardData) || !dashboardData.length) {
+      setSummaryData({ todayRequests: 0, todayQuota: 0, todayTokens: 0 }); return;
     }
-
     const today = new Date().toISOString().split('T')[0];
-    const todayData = dashboardData.filter((item) => item.Day === today);
-
-    const summary = {
-      todayRequests: todayData.reduce(
-        (sum, item) => sum + item.RequestCount,
-        0
-      ),
-      todayQuota:
-        todayData.reduce((sum, item) => sum + item.Quota, 0) / 1000000,
-      todayTokens: todayData.reduce(
-        (sum, item) => sum + item.PromptTokens + item.CompletionTokens,
-        0
-      ),
-    };
-
-    setSummaryData(summary);
+    const todayData = dashboardData.filter(item => item.Day === today);
+    setSummaryData({
+      todayRequests: todayData.reduce((s, i) => s + i.RequestCount, 0),
+      todayQuota:    todayData.reduce((s, i) => s + i.Quota, 0) / 1_000_000,
+      todayTokens:   todayData.reduce((s, i) => s + i.PromptTokens + i.CompletionTokens, 0),
+    });
   };
 
-  // 处理数据以供折线图使用，补充缺失的日期
+  // Process time series (7 days min)
   const processTimeSeriesData = () => {
     const dailyData = {};
-
-    // 获取日期范围
-    const dates = data.map((item) => item.Day);
-    const maxDate = new Date(); // 总是使用今天作为最后一天
-    let minDate =
-      dates.length > 0
-        ? new Date(Math.min(...dates.map((d) => new Date(d))))
-        : new Date();
-
-    // 确保至少显示7天的数据
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // -6是因为包含今天
-    if (minDate > sevenDaysAgo) {
-      minDate = sevenDaysAgo;
-    }
-
-    // 生成所有日期
+    const dates = data.map(i => i.Day);
+    let minDate = dates.length ? new Date(Math.min(...dates.map(d => new Date(d)))) : new Date();
+    const maxDate = new Date();
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    if (minDate > sevenDaysAgo) minDate = sevenDaysAgo;
     for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
-      dailyData[dateStr] = {
-        date: dateStr,
-        requests: 0,
-        quota: 0,
-        tokens: 0,
-      };
+      dailyData[dateStr] = { date: dateStr, requests: 0, quota: 0, tokens: 0 };
     }
-
-    // 填充实际数据
-    data.forEach((item) => {
-      dailyData[item.Day].requests += item.RequestCount;
-      dailyData[item.Day].quota += item.Quota / 1000000;
-      dailyData[item.Day].tokens += item.PromptTokens + item.CompletionTokens;
+    data.forEach(item => {
+      if (dailyData[item.Day]) {
+        dailyData[item.Day].requests += item.RequestCount;
+        dailyData[item.Day].quota += item.Quota / 1_000_000;
+        dailyData[item.Day].tokens += item.PromptTokens + item.CompletionTokens;
+      }
     });
-
-    return Object.values(dailyData).sort((a, b) =>
-      a.date.localeCompare(b.date)
-    );
+    return Object.values(dailyData).sort((a, b) => a.date.localeCompare(b.date));
   };
 
-  // 处理数据以供堆叠柱状图使用
+  // Process model stacked bar data
   const processModelData = () => {
     const timeData = {};
-
-    // 获取日期范围
-    const dates = data.map((item) => item.Day);
-    const maxDate = new Date(); // 总是使用今天作为最后一天
-    let minDate =
-      dates.length > 0
-        ? new Date(Math.min(...dates.map((d) => new Date(d))))
-        : new Date();
-
-    // 确保至少显示7天的数据
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // -6是因为包含今天
-    if (minDate > sevenDaysAgo) {
-      minDate = sevenDaysAgo;
-    }
-
-    // 生成所有日期
+    const dates = data.map(i => i.Day);
+    let minDate = dates.length ? new Date(Math.min(...dates.map(d => new Date(d)))) : new Date();
+    const maxDate = new Date();
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    if (minDate > sevenDaysAgo) minDate = sevenDaysAgo;
+    const models = [...new Set(data.map(i => i.ModelName))];
     for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
-      timeData[dateStr] = {
-        date: dateStr,
-      };
-
-      // 初始化所有模型的数据为0
-      const models = [...new Set(data.map((item) => item.ModelName))];
-      models.forEach((model) => {
-        timeData[dateStr][model] = 0;
-      });
+      timeData[dateStr] = { date: dateStr };
+      models.forEach(m => { timeData[dateStr][m] = 0; });
     }
-
-    // 填充实际数据
-    data.forEach((item) => {
-      timeData[item.Day][item.ModelName] =
-        item.PromptTokens + item.CompletionTokens;
+    data.forEach(item => {
+      if (timeData[item.Day]) timeData[item.Day][item.ModelName] = item.PromptTokens + item.CompletionTokens;
     });
-
     return Object.values(timeData).sort((a, b) => a.date.localeCompare(b.date));
   };
 
-  // 获取所有唯一的模型名称
-  const getUniqueModels = () => {
-    return [...new Set(data.map((item) => item.ModelName))];
+  const getUniqueModels = () => [...new Set(data.map(i => i.ModelName))];
+  const getRandomColor = (index) => chartConfig.barColors[index % chartConfig.barColors.length];
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const xAxisBase = {
+    dataKey: 'date', axisLine: false, tickLine: false,
+    tick: { fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'Inter, sans-serif' },
+    tickFormatter: formatDate, interval: 0, minTickGap: 8,
+  };
+
+  const yAxisBase = {
+    axisLine: false, tickLine: false,
+    tick: { fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'Inter, sans-serif' },
+  };
+
+  const tooltipBase = {
+    contentStyle: {
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--border-default)',
+      borderRadius: 'var(--radius-md)',
+      boxShadow: 'var(--shadow-lg)',
+      fontSize: '12px',
+      fontFamily: 'Inter, sans-serif',
+    },
+    labelFormatter: (label) => formatDate(label),
   };
 
   const timeSeriesData = processTimeSeriesData();
   const modelData = processModelData();
   const models = getUniqueModels();
 
-  // 生成随机颜色
-  const getRandomColor = (index) => {
-    return chartConfig.barColors[index % chartConfig.barColors.length];
-  };
-
-  // 添加一个日期格式化函数
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', {
-      month: 'numeric',
-      day: 'numeric',
-    });
-  };
-
-  // 修改所有 XAxis 配置
-  const xAxisConfig = {
-    dataKey: 'date',
-    axisLine: false,
-    tickLine: false,
-    tick: {
-      fontSize: 12,
-      fill: '#A3AED0',
-      textAnchor: 'middle', // 文本居中对齐
-    },
-    tickFormatter: formatDate,
-    interval: 0,
-    minTickGap: 5,
-    padding: { left: 30, right: 30 }, // 增加两侧的内边距，确保首尾标签完整显示
-  };
+  // Format numbers for display
+  const fmtNum = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString();
+  const fmtQuota = (n) => `$${n.toFixed(4)}`;
+  const fmtTokens = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString();
 
   return (
-    <div className='dashboard-container'>
-      {/* 三个并排的折线图 */}
-      <Grid columns={3} stackable className='charts-grid'>
-        <Grid.Column>
-          <Card fluid className='chart-card'>
-            <Card.Content>
-              <Card.Header>
-                {t('dashboard.charts.requests.title')}
-                {/* <span className='stat-value'>{summaryData.todayRequests}</span> */}
-              </Card.Header>
-              <div className='chart-container'>
-                <ResponsiveContainer
-                  width='100%'
-                  height={120}
-                  margin={{ left: 10, right: 10 }} // 调整容器边距
-                >
-                  <LineChart data={timeSeriesData}>
-                    <CartesianGrid
-                      strokeDasharray='3 3'
-                      vertical={chartConfig.lineChart.grid.vertical}
-                      horizontal={chartConfig.lineChart.grid.horizontal}
-                      opacity={chartConfig.lineChart.grid.opacity}
-                    />
-                    <XAxis {...xAxisConfig} />
-                    <YAxis hide={true} />
-                    <Tooltip
-                      contentStyle={{
-                        background: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}
-                      formatter={(value) => [
-                        value,
-                        t('dashboard.charts.requests.tooltip'),
-                      ]}
-                      labelFormatter={(label) =>
-                        `${t(
-                          'dashboard.statistics.tooltip.date'
-                        )}: ${formatDate(label)}`
-                      }
-                    />
-                    <Line
-                      type='monotone'
-                      dataKey='requests'
-                      stroke={chartConfig.colors.requests}
-                      strokeWidth={chartConfig.lineChart.line.strokeWidth}
-                      dot={chartConfig.lineChart.line.dot}
-                      activeDot={chartConfig.lineChart.line.activeDot}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Content>
-          </Card>
-        </Grid.Column>
+    <div className="dashboard-container">
+      <div className="ui container">
+        {/* Page Header */}
+        <div style={{ marginBottom: '28px' }}>
+          <h1 className="dashboard-title" style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
+            {isZh ? '数据看板' : 'Dashboard'}
+          </h1>
+          <p className="dashboard-subtitle" style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
+            {isZh ? '实时监控您的 API 调用与用量' : 'Monitor your API usage and performance in real time'}
+          </p>
+        </div>
 
-        <Grid.Column>
-          <Card fluid className='chart-card'>
-            <Card.Content>
-              <Card.Header>
-                {t('dashboard.charts.quota.title')}
-                {/* <span className='stat-value'>
-                  ${summaryData.todayQuota.toFixed(3)}
-                </span> */}
-              </Card.Header>
-              <div className='chart-container'>
-                <ResponsiveContainer
-                  width='100%'
-                  height={120}
-                  margin={{ left: 10, right: 10 }} // 调整容器边距
-                >
-                  <LineChart data={timeSeriesData}>
-                    <CartesianGrid
-                      strokeDasharray='3 3'
-                      vertical={chartConfig.lineChart.grid.vertical}
-                      horizontal={chartConfig.lineChart.grid.horizontal}
-                      opacity={chartConfig.lineChart.grid.opacity}
-                    />
-                    <XAxis {...xAxisConfig} />
-                    <YAxis hide={true} />
-                    <Tooltip
-                      contentStyle={{
-                        background: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}
-                      formatter={(value) => [
-                        value.toFixed(6),
-                        t('dashboard.charts.quota.tooltip'),
-                      ]}
-                      labelFormatter={(label) =>
-                        `${t(
-                          'dashboard.statistics.tooltip.date'
-                        )}: ${formatDate(label)}`
-                      }
-                    />
-                    <Line
-                      type='monotone'
-                      dataKey='quota'
-                      stroke={chartConfig.colors.quota}
-                      strokeWidth={chartConfig.lineChart.line.strokeWidth}
-                      dot={chartConfig.lineChart.line.dot}
-                      activeDot={chartConfig.lineChart.line.activeDot}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Content>
-          </Card>
-        </Grid.Column>
+        {/* Summary Stats Row */}
+        <div className="dashboard-stats-row">
+          <StatCard
+            icon="zap" color="#0D9488"
+            value={fmtNum(summaryData.todayRequests)}
+            label={isZh ? '今日请求' : "Today's Requests"}
+            chartData={timeSeriesData} chartKey="requests" isZh={isZh}
+          />
+          <StatCard
+            icon="dollar" color="#F59E0B"
+            value={fmtQuota(summaryData.todayQuota)}
+            label={isZh ? '今日消费' : "Today's Cost"}
+            chartData={timeSeriesData} chartKey="quota" isZh={isZh}
+          />
+          <StatCard
+            icon="cube" color="#3B82F6"
+            value={fmtTokens(summaryData.todayTokens)}
+            label={isZh ? '今日 Tokens' : "Today's Tokens"}
+            chartData={timeSeriesData} chartKey="tokens" isZh={isZh}
+          />
+          <StatCard
+            icon="globe" color="#8B5CF6"
+            value={models.length || '—'}
+            label={isZh ? '使用模型数' : 'Models Used'}
+            chartData={[]} chartKey="" isZh={isZh}
+          />
+        </div>
 
-        <Grid.Column>
-          <Card fluid className='chart-card'>
-            <Card.Content>
-              <Card.Header>
-                {t('dashboard.charts.tokens.title')}
-                {/* <span className='stat-value'>{summaryData.todayTokens}</span> */}
-              </Card.Header>
-              <div className='chart-container'>
-                <ResponsiveContainer
-                  width='100%'
-                  height={120}
-                  margin={{ left: 10, right: 10 }} // 调整容器边距
-                >
-                  <LineChart data={timeSeriesData}>
-                    <CartesianGrid
-                      strokeDasharray='3 3'
-                      vertical={chartConfig.lineChart.grid.vertical}
-                      horizontal={chartConfig.lineChart.grid.horizontal}
-                      opacity={chartConfig.lineChart.grid.opacity}
-                    />
-                    <XAxis {...xAxisConfig} />
-                    <YAxis hide={true} />
-                    <Tooltip
-                      contentStyle={{
-                        background: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}
-                      formatter={(value) => [
-                        value,
-                        t('dashboard.charts.tokens.tooltip'),
-                      ]}
-                      labelFormatter={(label) =>
-                        `${t(
-                          'dashboard.statistics.tooltip.date'
-                        )}: ${formatDate(label)}`
-                      }
-                    />
-                    <Line
-                      type='monotone'
-                      dataKey='tokens'
-                      stroke={chartConfig.colors.tokens}
-                      strokeWidth={chartConfig.lineChart.line.strokeWidth}
-                      dot={chartConfig.lineChart.line.dot}
-                      activeDot={chartConfig.lineChart.line.activeDot}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Content>
-          </Card>
-        </Grid.Column>
-      </Grid>
+        {/* Mini Chart Cards Row */}
+        <Grid columns={3} className="charts-grid" doubling stackable style={{ marginBottom: '24px' }}>
+          {[
+            { key: 'requests', label: isZh ? '请求量趋势' : 'Request Trend', color: chartConfig.colors.requests, fmt: (v) => fmtNum(v) },
+            { key: 'quota',    label: isZh ? '消费趋势' : 'Cost Trend',      color: chartConfig.colors.quota,    fmt: (v) => fmtQuota(v) },
+            { key: 'tokens',   label: isZh ? 'Token 趋势' : 'Token Trend',  color: chartConfig.colors.tokens,   fmt: (v) => fmtTokens(v) },
+          ].map(({ key, label, color, fmt }) => (
+            <Grid.Column key={key}>
+              <Card className="chart-card">
+                <Card.Content>
+                  <div className="ui header" style={{ marginBottom: '12px !important', fontSize: '0.9rem !important', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>{label}</span>
+                    <span style={{
+                      fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fontSize: '0.8rem',
+                      color, background: `${color}14`, border: `1px solid ${color}30`,
+                      padding: '3px 10px', borderRadius: 'var(--radius-full)',
+                    }}>
+                      {fmt(summaryData[key === 'requests' ? 'todayRequests' : key === 'quota' ? 'todayQuota' : 'todayTokens'])}
+                    </span>
+                  </div>
+                  <div className="chart-container" style={{ padding: '8px 0' }}>
+                    <ResponsiveContainer width="100%" height={100}>
+                      <LineChart data={timeSeriesData} margin={{ left: -15, right: 10, top: 4, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.08} />
+                        <XAxis {...xAxisBase} hide />
+                        <YAxis hide />
+                        <Tooltip {...tooltipBase} formatter={(v) => [fmt(v), '']} />
+                        <Line type="monotone" dataKey={key} stroke={color} strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card.Content>
+              </Card>
+            </Grid.Column>
+          ))}
+        </Grid>
 
-      {/* 模型使用统计 */}
-      <Card fluid className='chart-card'>
-        <Card.Content>
-          <Card.Header>{t('dashboard.statistics.title')}</Card.Header>
-          <div className='chart-container'>
-            <ResponsiveContainer width='100%' height={300}>
-              <BarChart data={modelData}>
-                <CartesianGrid
-                  strokeDasharray='3 3'
-                  vertical={false}
-                  opacity={0.1}
-                />
-                <XAxis {...xAxisConfig} />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#A3AED0' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  }}
-                  labelFormatter={(label) =>
-                    `${t('dashboard.statistics.tooltip.date')}: ${formatDate(
-                      label
-                    )}`
-                  }
-                />
+        {/* Model Usage Stacked Bar */}
+        <Card className="chart-card" style={{ padding: '0' }}>
+          <Card.Content style={{ padding: '24px 28px 16px !important' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                {isZh ? '模型使用分布 (Tokens)' : 'Model Usage Distribution (Tokens)'}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {models.slice(0, 5).map((m, i) => (
+                  <span key={m} className="model-badge">
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: getRandomColor(i), display: 'inline-block' }} />
+                    {m}
+                  </span>
+                ))}
+                {models.length > 5 && (
+                  <span className="badge badge-brand" style={{ fontSize: '10px' }}>+{models.length - 5}</span>
+                )}
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={modelData} margin={{ left: 0, right: 8, top: 4, bottom: 32 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.08} />
+                <XAxis {...xAxisBase} tick={{ ...xAxisBase.tick, textAnchor: 'middle' }} interval={0} />
+                <YAxis {...yAxisBase} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                <Tooltip {...tooltipBase} />
                 <Legend
-                  wrapperStyle={{
-                    paddingTop: '20px',
-                  }}
+                  wrapperStyle={{ paddingTop: '16px', fontSize: '12px', fontFamily: 'Inter, sans-serif' }}
+                  iconType="circle" iconSize={8}
                 />
                 {models.map((model, index) => (
-                  <Bar
-                    key={model}
-                    dataKey={model}
-                    stackId='a'
-                    fill={getRandomColor(index)}
-                    name={model}
-                    radius={[4, 4, 0, 0]}
-                  />
+                  <Bar key={model} dataKey={model} stackId="a" fill={getRandomColor(index)} name={model}
+                    radius={[3, 3, 0, 0]} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </Card.Content>
-      </Card>
+          </Card.Content>
+        </Card>
+      </div>
     </div>
   );
 };

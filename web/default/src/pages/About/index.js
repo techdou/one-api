@@ -34,14 +34,13 @@ const About = () => {
   return (
     <>
       {aboutLoaded && about === '' ? (
-        <div className='dashboard-container'>
-          <Card fluid className='chart-card'>
-            <Card.Content>
-              <Card.Header className='header'>{t('about.title')}</Card.Header>
-              <p>{t('about.description')}</p>
-              {t('about.repository')}
-              <a href='https://github.com/songquanpeng/one-api'>
-                https://github.com/songquanpeng/one-api
+        <div className="ui container" style={{ padding: '40px 0', maxWidth: '900px !important' }}>
+          <Card fluid style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-sm)' }}>
+            <Card.Content style={{ padding: '28px 32px !important' }}>
+              <h2 style={{ fontFamily: 'Outfit, sans-serif', marginBottom: '12px' }}>{t('about.title')}</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>{t('about.description')}</p>
+              <a href="https://github.com/songquanpeng/one-api" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-primary)' }}>
+                {t('about.repository')} https://github.com/songquanpeng/one-api
               </a>
             </Card.Content>
           </Card>
@@ -54,13 +53,10 @@ const About = () => {
               style={{ width: '100%', height: '100vh', border: 'none' }}
             />
           ) : (
-            <div className='dashboard-container'>
-              <Card fluid className='chart-card'>
-                <Card.Content>
-                  <div
-                    style={{ fontSize: 'larger' }}
-                    dangerouslySetInnerHTML={{ __html: about }}
-                  ></div>
+            <div className="ui container" style={{ padding: '40px 0', maxWidth: '900px !important' }}>
+              <Card fluid style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-sm)' }}>
+                <Card.Content style={{ padding: '28px 32px !important' }}>
+                  <div style={{ fontSize: 'larger', color: 'var(--text-primary)' }} dangerouslySetInnerHTML={{ __html: about }} />
                 </Card.Content>
               </Card>
             </div>

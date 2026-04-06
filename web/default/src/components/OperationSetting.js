@@ -32,6 +32,12 @@ const OperationSetting = () => {
     DisplayTokenStatEnabled: '',
     ApproximateTokenEnabled: '',
     RetryTimes: 0,
+    StripeSecretKey: '',
+    StripeWebhookSecret: '',
+    AlipayAppId: '',
+    AlipayPublicKey: '',
+    AlipayPrivateKey: '',
+    PayRateRMB: '',
   });
   const [originInputs, setOriginInputs] = useState({});
   let [loading, setLoading] = useState(false);
@@ -165,6 +171,31 @@ const OperationSetting = () => {
         if (originInputs['RetryTimes'] !== inputs.RetryTimes) {
           await updateOption('RetryTimes', inputs.RetryTimes);
         }
+        break;
+      case 'stripe':
+        // Only update if admin actually typed a new value (not blank)
+        if (inputs.StripeSecretKey !== '' && originInputs['StripeSecretKey'] !== inputs.StripeSecretKey) {
+          await updateOption('StripeSecretKey', inputs.StripeSecretKey);
+        }
+        if (inputs.StripeWebhookSecret !== '' && originInputs['StripeWebhookSecret'] !== inputs.StripeWebhookSecret) {
+          await updateOption('StripeWebhookSecret', inputs.StripeWebhookSecret);
+        }
+        showSuccess('Stripe 设置已保存');
+        break;
+      case 'alipay':
+        if (inputs.AlipayAppId !== '' && originInputs['AlipayAppId'] !== inputs.AlipayAppId) {
+          await updateOption('AlipayAppId', inputs.AlipayAppId);
+        }
+        if (inputs.AlipayPublicKey !== '' && originInputs['AlipayPublicKey'] !== inputs.AlipayPublicKey) {
+          await updateOption('AlipayPublicKey', inputs.AlipayPublicKey);
+        }
+        if (inputs.AlipayPrivateKey !== '' && originInputs['AlipayPrivateKey'] !== inputs.AlipayPrivateKey) {
+          await updateOption('AlipayPrivateKey', inputs.AlipayPrivateKey);
+        }
+        if (inputs.PayRateRMB !== '' && originInputs['PayRateRMB'] !== inputs.PayRateRMB) {
+          await updateOption('PayRateRMB', inputs.PayRateRMB);
+        }
+        showSuccess('支付宝设置已保存');
         break;
     }
   };
@@ -435,6 +466,144 @@ const OperationSetting = () => {
               submitConfig('general').then();
             }}
           >
+            {t('setting.operation.general.buttons.save')}
+          </Form.Button>
+
+          <Divider />
+          <Header as='h3'>支付设置 (Stripe)</Header>
+          <p style={{ color: '#888', fontSize: '0.9em', marginBottom: '1em' }}>
+            出于安全考虑，已保存的密钥不会回显。如需更新，请重新填入新值并保存。
+          </p>
+          <Form.Group widths={2}>
+            <Form.Input
+              label={
+                <label>
+                  Stripe API 密钥 (Secret Key)
+                  {originInputs.StripeSecretKey === undefined || originInputs.StripeSecretKey === ''
+                    ? null
+                    : <span style={{ marginLeft: 8, color: '#21ba45', fontSize: '0.85em' }}>✓ 已设置</span>
+                  }
+                </label>
+              }
+              name='StripeSecretKey'
+              type='password'
+              autoComplete='new-password'
+              onChange={handleInputChange}
+              value={inputs.StripeSecretKey}
+              placeholder={
+                originInputs.StripeSecretKey === undefined || originInputs.StripeSecretKey === ''
+                  ? 'sk_live_... 或 sk_test_...'
+                  : '留空表示不修改当前密钥'
+              }
+            />
+            <Form.Input
+              label={
+                <label>
+                  Stripe Webhook 密钥 (Webhook Secret)
+                  {originInputs.StripeWebhookSecret === undefined || originInputs.StripeWebhookSecret === ''
+                    ? null
+                    : <span style={{ marginLeft: 8, color: '#21ba45', fontSize: '0.85em' }}>✓ 已设置</span>
+                  }
+                </label>
+              }
+              name='StripeWebhookSecret'
+              type='password'
+              autoComplete='new-password'
+              onChange={handleInputChange}
+              value={inputs.StripeWebhookSecret}
+              placeholder={
+                originInputs.StripeWebhookSecret === undefined || originInputs.StripeWebhookSecret === ''
+                  ? 'whsec_...'
+                  : '留空表示不修改当前密钥'
+              }
+            />
+          </Form.Group>
+          <Form.Button
+            onClick={() => {
+              submitConfig('stripe').then();
+            }}
+          >
+            {t('setting.operation.general.buttons.save')}
+          </Form.Button>
+
+          <Divider />
+          <Header as='h3'>支付设置 (支付宝 Alipay)</Header>
+          <Form.Group widths={2}>
+            <Form.Input
+              label='汇率 (1 美元等值计收人民币，默认 7.2)'
+              name='PayRateRMB'
+              type='number'
+              step='0.01'
+              onChange={handleInputChange}
+              value={inputs.PayRateRMB}
+              placeholder={originInputs.PayRateRMB || '7.2'}
+            />
+            <Form.Input
+              label={
+                <label>
+                  支付宝 AppId
+                  {originInputs.AlipayAppId === undefined || originInputs.AlipayAppId === ''
+                    ? null
+                    : <span style={{ marginLeft: 8, color: '#21ba45', fontSize: '0.85em' }}>✓ 已设置</span>
+                  }
+                </label>
+              }
+              name='AlipayAppId'
+              type='text'
+              onChange={handleInputChange}
+              value={inputs.AlipayAppId}
+              placeholder={
+                originInputs.AlipayAppId === undefined || originInputs.AlipayAppId === ''
+                  ? '例如: 2021000123... '
+                  : '留空表示不修改当前配置'
+              }
+            />
+          </Form.Group>
+          <Form.Group widths={2}>
+            <Form.Input
+              label={
+                <label>
+                  应用私钥 (Private Key)
+                  {originInputs.AlipayPrivateKey === undefined || originInputs.AlipayPrivateKey === ''
+                    ? null
+                    : <span style={{ marginLeft: 8, color: '#21ba45', fontSize: '0.85em' }}>✓ 已设置</span>
+                  }
+                </label>
+              }
+              name='AlipayPrivateKey'
+              type='password'
+              autoComplete='new-password'
+              onChange={handleInputChange}
+              value={inputs.AlipayPrivateKey}
+              placeholder={
+                originInputs.AlipayPrivateKey === undefined || originInputs.AlipayPrivateKey === ''
+                  ? 'MIIEowIBAAKCAQE... '
+                  : '留空表示不修改当前应用私钥'
+              }
+            />
+            <Form.Input
+              label={
+                <label>
+                  支付宝公钥 (Alipay Public Key)
+                  {originInputs.AlipayPublicKey === undefined || originInputs.AlipayPublicKey === ''
+                    ? null
+                    : <span style={{ marginLeft: 8, color: '#21ba45', fontSize: '0.85em' }}>✓ 已设置</span>
+                  }
+                </label>
+              }
+              name='AlipayPublicKey'
+              type='password'
+              autoComplete='new-password'
+              onChange={handleInputChange}
+              value={inputs.AlipayPublicKey}
+              placeholder={
+                originInputs.AlipayPublicKey === undefined || originInputs.AlipayPublicKey === ''
+                  ? 'MIIBIjANBgkqhki... '
+                  : '留空表示不修改当前支付宝公钥'
+              }
+            />
+          </Form.Group>
+          <Form.Button onClick={() => { submitConfig('alipay').then(); }}>
             {t('setting.operation.general.buttons.save')}
           </Form.Button>
         </Form>

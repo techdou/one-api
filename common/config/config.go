@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var SystemName = "One API"
+var SystemName = "瓦兰卡"
 var ServerAddress = "http://localhost:3000"
 var Footer = ""
 var Logo = ""
@@ -88,6 +88,15 @@ var MessagePusherToken = ""
 
 var TurnstileSiteKey = ""
 var TurnstileSecretKey = ""
+
+var StripeSecretKey = ""
+var StripeWebhookSecret = ""
+
+var AlipayAppId = ""
+var AlipayPublicKey = ""
+var AlipayPrivateKey = ""
+var PayRateRMB float64 = 7.2
+
 
 var QuotaForNewUser int64 = 0
 var QuotaForInviter int64 = 0

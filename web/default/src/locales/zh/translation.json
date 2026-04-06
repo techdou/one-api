@@ -725,7 +725,7 @@
   },
   "about": {
     "title": "关于",
-    "description": "One API 是一个开源的接口管理和代理平台。",
+    "description": "瓦兰卡 是一个开源的接口管理和代理平台。",
     "repository": "项目地址：",
     "loading_failed": "加载失败"
   },
@@ -737,8 +737,8 @@
   },
   "home": {
     "welcome": {
-      "title": "欢迎使用 One API",
-      "description": "One API 是一个 LLM API 接口管理和分发系统，可以帮助您更好地管理和使用各大厂商的 LLM API。",
+      "title": "欢迎使用瓦兰卡",
+      "description": "瓦兰卡 是一个 LLM API 接口管理和分发系统，可以帮助您更好地管理和使用各大厂商的 LLM API。",
       "login_notice": "如需使用，请先登录或注册。"
     },
     "system_status": {

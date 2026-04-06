@@ -4,6 +4,8 @@ go 1.20
 
 require (
 	cloud.google.com/go/iam v1.1.10
+	github.com/stripe/stripe-go/v76 v76.22.0
+	github.com/smartwalle/alipay/v3 v3.2.22
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.8.3
