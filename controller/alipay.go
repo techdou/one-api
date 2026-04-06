@@ -24,13 +24,17 @@ func alipayClient() (*alipay.Client, error) {
 	if config.AlipayAppId == "" || config.AlipayPrivateKey == "" {
 		return nil, fmt.Errorf("alipay credentials not configured")
 	}
-	client, err := alipay.New(config.AlipayAppId, config.AlipayPrivateKey, false)
+	// The 3rd parameter must be true for production environment. false means sandbox.
+	client, err := alipay.New(config.AlipayAppId, config.AlipayPrivateKey, true)
 	if err != nil {
 		return nil, err
 	}
 	if config.AlipayPublicKey != "" {
 		// Used to verify Alipay Webhooks
-		client.LoadAliPayPublicKey(config.AlipayPublicKey)
+		err = client.LoadAliPayPublicKey(config.AlipayPublicKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load alipay public key: %w", err)
+		}
 	}
 	return client, nil
 }
@@ -132,10 +136,10 @@ func AlipayWebhook(c *gin.Context) {
 	}
 
 	amountUSD := amountRMB / rate
-	amountCents := int64(amountUSD * 100)
+	amountCents := int64(math.Round(amountUSD * 100))
 
-	quotaPerCent := config.QuotaPerUnit / 0.002 / 100
-	quota := int64(math.Round(float64(amountCents) * float64(quotaPerCent)))
+	// quota = amountUSD * (config.QuotaPerUnit / 0.002)
+	quota := int64(math.Round(amountUSD * (config.QuotaPerUnit / 0.002)))
 
 	sessionId := noti.OutTradeNo
 
