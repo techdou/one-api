@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -13,7 +13,6 @@ import {
   API,
   copy,
   showError,
-  showInfo,
   showSuccess,
   showWarning,
   timestamp2string,
@@ -63,22 +62,18 @@ const RedemptionsTable = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searching, setSearching] = useState(false);
 
-  const loadRedemptions = async (startIdx) => {
+  const loadRedemptions = useCallback(async (startIdx) => {
     const res = await API.get(`/api/redemption/?p=${startIdx}`);
     const { success, message, data } = res.data;
     if (success) {
-      if (startIdx === 0) {
-        setRedemptions(data);
-      } else {
-        let newRedemptions = redemptions;
-        newRedemptions.push(...data);
-        setRedemptions(newRedemptions);
-      }
+      setRedemptions((currentRedemptions) =>
+        startIdx === 0 ? data : [...currentRedemptions, ...data]
+      );
     } else {
       showError(message);
     }
     setLoading(false);
-  };
+  }, []);
 
   const onPaginationChange = (e, { activePage }) => {
     (async () => {
@@ -96,7 +91,7 @@ const RedemptionsTable = () => {
       .catch((reason) => {
         showError(reason);
       });
-  }, []);
+  }, [loadRedemptions]);
 
   const manageRedemption = async (id, action, idx) => {
     let data = { id };
@@ -113,6 +108,8 @@ const RedemptionsTable = () => {
         data.status = 2;
         res = await API.put('/api/redemption/?status_only=true', data);
         break;
+      default:
+        return;
     }
     const { success, message } = res.data;
     if (success) {

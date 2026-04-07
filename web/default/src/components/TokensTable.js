@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -84,26 +84,25 @@ const TokensTable = () => {
   const [activePage, setActivePage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searching, setSearching] = useState(false);
-  const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [targetTokenIdx, setTargetTokenIdx] = useState(0);
   const [orderBy, setOrderBy] = useState('');
 
-  const loadTokens = async (startIdx) => {
+  const loadTokens = useCallback(async (startIdx) => {
     const res = await API.get(`/api/token/?p=${startIdx}&order=${orderBy}`);
     const { success, message, data } = res.data;
     if (success) {
-      if (startIdx === 0) {
-        setTokens(data);
-      } else {
-        let newTokens = [...tokens];
+      setTokens((currentTokens) => {
+        if (startIdx === 0) {
+          return data;
+        }
+        let newTokens = [...currentTokens];
         newTokens.splice(startIdx * ITEMS_PER_PAGE, data.length, ...data);
-        setTokens(newTokens);
-      }
+        return newTokens;
+      });
     } else {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [orderBy]);
 
   const onPaginationChange = (e, { activePage }) => {
     (async () => {
@@ -217,7 +216,7 @@ const TokensTable = () => {
       .catch((reason) => {
         showError(reason);
       });
-  }, [orderBy]);
+  }, [loadTokens, orderBy]);
 
   const manageToken = async (id, action, idx) => {
     let data = { id };
@@ -234,6 +233,8 @@ const TokensTable = () => {
         data.status = 2;
         res = await API.put('/api/token/?status_only=true', data);
         break;
+      default:
+        return;
     }
     const { success, message } = res.data;
     if (success) {

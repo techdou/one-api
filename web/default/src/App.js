@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useContext, useEffect } from 'react';
+import React, { lazy, Suspense, useCallback, useContext, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Loading from './components/Loading';
 import User from './pages/User';
@@ -26,22 +26,21 @@ import Log from './pages/Log';
 import Chat from './pages/Chat';
 import LarkOAuth from './components/LarkOAuth';
 import Dashboard from './pages/Dashboard';
-
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 
 function App() {
-  const [userState, userDispatch] = useContext(UserContext);
-  const [statusState, statusDispatch] = useContext(StatusContext);
+  const [, userDispatch] = useContext(UserContext);
+  const [, statusDispatch] = useContext(StatusContext);
 
-  const loadUser = () => {
+  const loadUser = useCallback(() => {
     let user = localStorage.getItem('user');
     if (user) {
       let data = JSON.parse(user);
       userDispatch({ type: 'login', payload: data });
     }
-  };
-  const loadStatus = async () => {
+  }, [userDispatch]);
+  const loadStatus = useCallback(async () => {
     try {
       const res = await API.get('/api/status');
       const { success, message, data } = res.data || {}; // Add default empty object
@@ -74,7 +73,7 @@ function App() {
     } catch (error) {
       showError(error.message || '无法正常连接至服务器！');
     }
-  };
+  }, [statusDispatch]);
 
   useEffect(() => {
     loadUser();
@@ -90,7 +89,7 @@ function App() {
         linkElement.href = logo;
       }
     }
-  }, []);
+  }, [loadStatus, loadUser]);
 
   return (
     <Routes>
@@ -256,6 +255,16 @@ function App() {
       />
       <Route
         path='/setting'
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<Loading></Loading>}>
+              <Setting />
+            </Suspense>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path='/setting/payment'
         element={
           <PrivateRoute>
             <Suspense fallback={<Loading></Loading>}>

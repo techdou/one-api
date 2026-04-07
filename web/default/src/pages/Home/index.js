@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, Grid, Header, Button, Image } from 'semantic-ui-react';
 import { API, showError, showNotice } from '../../helpers';
-import { StatusContext } from '../../context/Status';
 import { marked } from 'marked';
 import { UserContext } from '../../context/User';
 import { Link, useNavigate } from 'react-router-dom';
@@ -454,9 +453,8 @@ const CTABanner = ({ isZh, userState, navigate }) => (
 // MAIN HOME PAGE
 // ============================================
 const Home = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
-  const [statusState] = useContext(StatusContext);
   const [homePageContentLoaded, setHomePageContentLoaded] = useState(false);
   const [homePageContent, setHomePageContent] = useState('');
   const [userState] = useContext(UserContext);

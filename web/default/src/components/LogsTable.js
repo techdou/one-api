@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Button,
   Form,
   Header,
   Label,
   Pagination,
-  Segment,
   Select,
   Table,
-  Popup,
 } from 'semantic-ui-react';
 import {
   API,
@@ -41,11 +39,6 @@ function renderTimestamp(timestamp, request_id) {
     </code>
   );
 }
-
-const MODE_OPTIONS = [
-  { key: 'all', text: '全部用户', value: 'all' },
-  { key: 'self', text: '当前用户', value: 'self' },
-];
 
 function renderType(type) {
   switch (type) {
@@ -89,7 +82,7 @@ function renderType(type) {
 }
 
 function getColorByElapsedTime(elapsedTime) {
-  if (elapsedTime === undefined || 0) return 'black';
+  if (elapsedTime === undefined || elapsedTime === 0) return 'black';
   if (elapsedTime < 1000) return 'green';
   if (elapsedTime < 3000) return 'olive';
   if (elapsedTime < 5000) return 'yellow';
@@ -136,9 +129,9 @@ const LogsTable = () => {
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [searching, setSearching] = useState(false);
   const [logType, setLogType] = useState(0);
   const isAdminUser = isAdmin();
+  const loadLogsRef = useRef(null);
   let now = new Date();
   const [inputs, setInputs] = useState({
     username: '',
@@ -218,7 +211,7 @@ const LogsTable = () => {
     return logType !== 5;
   };
 
-  const loadLogs = async (startIdx) => {
+  const loadLogs = useCallback(async (startIdx) => {
     let url = '';
     let localStartTimestamp = Date.parse(start_timestamp) / 1000;
     let localEndTimestamp = Date.parse(end_timestamp) / 1000;
@@ -230,18 +223,28 @@ const LogsTable = () => {
     const res = await API.get(url);
     const { success, message, data } = res.data;
     if (success) {
-      if (startIdx === 0) {
-        setLogs(data);
-      } else {
-        let newLogs = [...logs];
+      setLogs((currentLogs) => {
+        if (startIdx === 0) {
+          return data;
+        }
+        let newLogs = [...currentLogs];
         newLogs.splice(startIdx * ITEMS_PER_PAGE, data.length, ...data);
-        setLogs(newLogs);
-      }
+        return newLogs;
+      });
     } else {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [
+    channel,
+    end_timestamp,
+    isAdminUser,
+    logType,
+    model_name,
+    start_timestamp,
+    token_name,
+    username,
+  ]);
 
   const onPaginationChange = (e, { activePage }) => {
     (async () => {
@@ -260,31 +263,17 @@ const LogsTable = () => {
   };
 
   useEffect(() => {
-    refresh().then();
+    loadLogsRef.current = loadLogs;
+  }, [loadLogs]);
+
+  useEffect(() => {
+    setLoading(true);
+    setActivePage(1);
+    loadLogsRef.current?.(0).catch((reason) => {
+      showError(reason);
+      setLoading(false);
+    });
   }, [logType]);
-
-  const searchLogs = async () => {
-    if (searchKeyword === '') {
-      // if keyword is blank, load files instead.
-      await loadLogs(0);
-      setActivePage(1);
-      return;
-    }
-    setSearching(true);
-    const res = await API.get(`/api/log/self/search?keyword=${searchKeyword}`);
-    const { success, message, data } = res.data;
-    if (success) {
-      setLogs(data);
-      setActivePage(1);
-    } else {
-      showError(message);
-    }
-    setSearching(false);
-  };
-
-  const handleKeywordChange = async (e, { value }) => {
-    setSearchKeyword(value.trim());
-  };
 
   const sortLog = (key) => {
     if (logs.length === 0) return;
@@ -297,8 +286,7 @@ const LogsTable = () => {
     } else {
       sortedLogs.sort((a, b) => {
         if (a[key] === b[key]) return 0;
-        if (a[key] > b[key]) return -1;
-        if (a[key] < b[key]) return 1;
+        return a[key] > b[key] ? -1 : 1;
       });
     }
     if (sortedLogs[0].id === logs[0].id) {

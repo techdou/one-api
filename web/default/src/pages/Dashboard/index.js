@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, Grid, Statistic } from 'semantic-ui-react';
 import {
@@ -26,37 +26,6 @@ const chartConfig = {
     line: { strokeWidth: 2.5, dot: false, activeDot: { r: 5 } },
     grid: { vertical: false, horizontal: true, opacity: 0.08 },
   },
-};
-
-// ============================================
-// CUSTOM TOOLTIP
-// ============================================
-const CustomTooltip = ({ active, payload, label, formatter, labelFormatter }) => {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div style={{
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--border-default)',
-      borderRadius: 'var(--radius-md)',
-      padding: '10px 14px',
-      boxShadow: 'var(--shadow-lg)',
-      fontSize: '12px',
-      fontFamily: 'Inter, sans-serif',
-    }}>
-      <div style={{ color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>
-        {labelFormatter ? labelFormatter(label) : label}
-      </div>
-      {payload.map((entry, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, display: 'inline-block', flexShrink: 0 }} />
-          <span style={{ color: 'var(--text-muted)' }}>{entry.name}:</span>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {Array.isArray(formatter) ? formatter[i]?.(entry.value) : entry.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 };
 
 // ============================================
@@ -106,27 +75,12 @@ const StatCard = ({ icon, value, label, color, chartData, chartKey, isZh }) => (
 // MAIN DASHBOARD
 // ============================================
 const Dashboard = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const [data, setData] = useState([]);
   const [summaryData, setSummaryData] = useState({ todayRequests: 0, todayQuota: 0, todayTokens: 0 });
 
-  useEffect(() => { fetchDashboardData(); }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const response = await axios.get('/api/user/dashboard');
-      if (response.data.success) {
-        const dashboardData = response.data.data || [];
-        setData(dashboardData);
-        calculateSummary(dashboardData);
-      }
-    } catch {
-      setData([]); calculateSummary([]);
-    }
-  };
-
-  const calculateSummary = (dashboardData) => {
+  const calculateSummary = useCallback((dashboardData) => {
     if (!Array.isArray(dashboardData) || !dashboardData.length) {
       setSummaryData({ todayRequests: 0, todayQuota: 0, todayTokens: 0 }); return;
     }
@@ -137,7 +91,25 @@ const Dashboard = () => {
       todayQuota:    todayData.reduce((s, i) => s + i.Quota, 0) / 1_000_000,
       todayTokens:   todayData.reduce((s, i) => s + i.PromptTokens + i.CompletionTokens, 0),
     });
-  };
+  }, []);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/user/dashboard');
+      if (response.data.success) {
+        const dashboardData = response.data.data || [];
+        setData(dashboardData);
+        calculateSummary(dashboardData);
+      }
+    } catch {
+      setData([]);
+      calculateSummary([]);
+    }
+  }, [calculateSummary]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   // Process time series (7 days min)
   const processTimeSeriesData = () => {

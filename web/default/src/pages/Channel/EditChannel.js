@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Button, Card, Form, Input, Message} from 'semantic-ui-react';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -80,7 +80,7 @@ const EditChannel = () => {
     setConfig((inputs) => ({ ...inputs, [name]: value }));
   };
 
-  const loadChannel = async () => {
+  const loadChannel = useCallback(async () => {
     let res = await API.get(`/api/channel/${channelId}`);
     const { success, message, data } = res.data;
     if (success) {
@@ -110,9 +110,9 @@ const EditChannel = () => {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [channelId]);
 
-  const fetchModels = async () => {
+  const fetchModels = useCallback(async () => {
     try {
       let res = await API.get(`/api/channel/models`);
       let localModelOptions = res.data.data.map((model) => ({
@@ -125,9 +125,9 @@ const EditChannel = () => {
     } catch (error) {
       showError(error.message);
     }
-  };
+  }, []);
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
       let res = await API.get(`/api/group/`);
       setGroupOptions(
@@ -140,7 +140,7 @@ const EditChannel = () => {
     } catch (error) {
       showError(error.message);
     }
-  };
+  }, []);
 
   useEffect(() => {
     let localModelOptions = [...originModelOptions];
@@ -159,13 +159,16 @@ const EditChannel = () => {
   useEffect(() => {
     if (isEdit) {
       loadChannel().then();
-    } else {
-      let localModels = getChannelModels(inputs.type);
-      setBasicModels(localModels);
     }
     fetchModels().then();
     fetchGroups().then();
-  }, []);
+  }, [fetchGroups, fetchModels, isEdit, loadChannel]);
+
+  useEffect(() => {
+    if (!isEdit) {
+      setBasicModels(getChannelModels(inputs.type));
+    }
+  }, [inputs.type, isEdit]);
 
   const submit = async () => {
     if (inputs.key === '') {
@@ -306,7 +309,8 @@ const EditChannel = () => {
                   参数替换为你的部署名称（模型名称中的点会被剔除），
                   <a
                     target='_blank'
-                    href='https://github.com/songquanpeng/one-api/issues/133?notification_referrer_id=NT_kwDOAmJSYrM2NjIwMzI3NDgyOjM5OTk4MDUw#issuecomment-1571602271'
+                    href='https://github.com/techdou/one-api/issues/133?notification_referrer_id=NT_kwDOAmJSYrM2NjIwMzI3NDgyOjM5OTk4MDUw#issuecomment-1571602271'
+                    rel='noreferrer'
                   >
                     图片演示
                   </a>
@@ -408,6 +412,7 @@ const EditChannel = () => {
                 <a
                   target='_blank'
                   href='https://console.volcengine.com/ark/region:ark+cn-beijing/endpoint'
+                  rel='noreferrer'
                 >
                   {t('channel.edit.douban_notice_link')}
                 </a>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Form,
@@ -44,22 +44,18 @@ const UsersTable = () => {
   const [searching, setSearching] = useState(false);
   const [orderBy, setOrderBy] = useState('');
 
-  const loadUsers = async (startIdx) => {
+  const loadUsers = useCallback(async (startIdx) => {
     const res = await API.get(`/api/user/?p=${startIdx}&order=${orderBy}`);
     const { success, message, data } = res.data;
     if (success) {
-      if (startIdx === 0) {
-        setUsers(data);
-      } else {
-        let newUsers = users;
-        newUsers.push(...data);
-        setUsers(newUsers);
-      }
+      setUsers((currentUsers) =>
+        startIdx === 0 ? data : [...currentUsers, ...data]
+      );
     } else {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [orderBy]);
 
   const onPaginationChange = (e, { activePage }) => {
     (async () => {
@@ -77,7 +73,7 @@ const UsersTable = () => {
       .catch((reason) => {
         showError(reason);
       });
-  }, [orderBy]);
+  }, [loadUsers, orderBy]);
 
   const manageUser = (username, action, idx) => {
     (async () => {

@@ -185,13 +185,13 @@ const Header = () => {
           borderRight: 'none',
           height: 'var(--header-height)',
           background: 'var(--bg-glass)',
-          backdropFilter: 'blur(16px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(200%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           borderBottom: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05), 0 1px 0 rgba(13, 148, 136, 0.05)',
           margin: 0,
           zIndex: 1000,
-          padding: '0 24px',
+          padding: '0 32px',
         }}
       >
         {/* Logo */}

@@ -731,7 +731,7 @@
   },
   "footer": {
     "built_by": "由",
-    "built_by_name": "JustSong",
+    "built_by_name": "TechDou",
     "license": "构建，源代码遵循",
     "mit": "MIT 协议"
   },
@@ -823,5 +823,12 @@
     "notice": {
       "password_copied": "新密码已复制到剪贴板：{{password}}"
     }
+  },
+  "payment": {
+    "title": "支付配置",
+    "subtitle": "管理 Stripe 和支付宝集成设置",
+    "save_success": "设置保存成功",
+    "save": "保存 Stripe 设置",
+    "save_alipay": "保存支付宝设置"
   }
 }

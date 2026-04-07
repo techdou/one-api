@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
   Form,
-  Header,
   Message,
-  Segment,
   Card,
 } from 'semantic-ui-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -61,7 +59,7 @@ const EditToken = () => {
     setInputs({ ...inputs, unlimited_quota: !unlimited_quota });
   };
 
-  const loadToken = async () => {
+  const loadToken = useCallback(async () => {
     try {
       let res = await API.get(`/api/token/${tokenId}`);
       const { success, message, data } = res.data || {};
@@ -82,9 +80,9 @@ const EditToken = () => {
       showError(error.message || 'Network error');
     }
     setLoading(false);
-  };
+  }, [tokenId]);
 
-  const loadAvailableModels = async () => {
+  const loadAvailableModels = useCallback(async () => {
     try {
       let res = await API.get(`/api/user/available_models`);
       const { success, message, data } = res.data || {};
@@ -103,7 +101,7 @@ const EditToken = () => {
     } catch (error) {
       showError(error.message || 'Network error');
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isEdit) {
@@ -115,7 +113,7 @@ const EditToken = () => {
     loadAvailableModels().catch((error) => {
       showError(error.message || 'Failed to load models');
     });
-  }, []);
+  }, [isEdit, loadAvailableModels, loadToken]);
 
   const submit = async () => {
     if (!isEdit && inputs.name === '') return;

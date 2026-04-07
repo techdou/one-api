@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Card } from 'semantic-ui-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API, showError, showSuccess } from '../../helpers';
-import { renderQuota, renderQuotaWithPrompt } from '../../helpers/render';
+import { renderQuotaWithPrompt } from '../../helpers/render';
 
 const EditUser = () => {
   const { t } = useTranslation();
@@ -29,12 +29,11 @@ const EditUser = () => {
     wechat_id,
     email,
     quota,
-    group,
   } = inputs;
   const handleInputChange = (e, { name, value }) => {
     setInputs((inputs) => ({ ...inputs, [name]: value }));
   };
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
       let res = await API.get(`/api/group/`);
       setGroupOptions(
@@ -47,12 +46,12 @@ const EditUser = () => {
     } catch (error) {
       showError(error.message);
     }
-  };
+  }, []);
   const navigate = useNavigate();
   const handleCancel = () => {
     navigate('/setting');
   };
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     let res = undefined;
     if (userId) {
       res = await API.get(`/api/user/${userId}`);
@@ -67,13 +66,13 @@ const EditUser = () => {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [userId]);
   useEffect(() => {
     loadUser().then();
     if (userId) {
       fetchGroups().then();
     }
-  }, []);
+  }, [fetchGroups, loadUser, userId]);
 
   const submit = async () => {
     let res = undefined;

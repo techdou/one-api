@@ -7,25 +7,21 @@ const Footer = () => {
   const { t } = useTranslation();
   const systemName = getSystemName();
   const [footer, setFooter] = useState(getFooterHTML());
-  let remainCheckTimes = 5;
-
-  const loadFooter = () => {
-    let footer_html = localStorage.getItem('footer_html');
-    if (footer_html) {
-      setFooter(footer_html);
-    }
-  };
 
   useEffect(() => {
+    let remainCheckTimes = 5;
     const timer = setInterval(() => {
       if (remainCheckTimes <= 0) {
         clearInterval(timer);
         return;
       }
       remainCheckTimes--;
-      loadFooter();
+      let footer_html = localStorage.getItem('footer_html');
+      if (footer_html) {
+        setFooter(footer_html);
+      }
     }, 200);
-    return () => clearTimeout(timer);
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -38,12 +34,16 @@ const Footer = () => {
           ></div>
         ) : (
           <div className='custom-footer'>
-            <a href='https://github.com/songquanpeng/one-api' target='_blank'>
+            <a
+              href='https://github.com/techdou/one-api'
+              target='_blank'
+              rel='noreferrer'
+            >
               {systemName} {process.env.REACT_APP_VERSION}{' '}
             </a>
             {t('footer.built_by')}{' '}
-            <a href='https://github.com/songquanpeng' target='_blank'>
-              {t('footer.built_by_name')}
+            <a href='https://github.com/techdou' target='_blank' rel='noreferrer'>
+              TechDou
             </a>{' '}
             {t('footer.license')}{' '}
             <a href='https://opensource.org/licenses/mit-license.php'>

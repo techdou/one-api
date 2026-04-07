@@ -729,7 +729,7 @@
   },
   "footer": {
     "built_by": "built by",
-    "built_by_name": "JustSong",
+    "built_by_name": "TechDou",
     "license": ", source code is licensed under the",
     "mit": "MIT License"
   },
@@ -827,5 +827,12 @@
     "notice": {
       "password_copied": "New password copied to clipboard: {{password}}"
     }
+  },
+  "payment": {
+    "title": "Payment Configuration",
+    "subtitle": "Manage Stripe and Alipay integration settings",
+    "save_success": "Settings saved successfully",
+    "save": "Save Stripe Settings",
+    "save_alipay": "Save Alipay Settings"
   }
 }

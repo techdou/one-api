@@ -197,6 +197,8 @@ const OperationSetting = () => {
         }
         showSuccess('支付宝设置已保存');
         break;
+      default:
+        break;
     }
   };
 

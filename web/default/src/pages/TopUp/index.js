@@ -5,14 +5,11 @@ import {
   Grid,
   Header,
   Card,
-  Statistic,
   Tab,
   Input,
 } from 'semantic-ui-react';
-import { API, showError, showInfo, showSuccess, renderQuota } from '../../helpers';
+import { API, showError, showInfo, showSuccess } from '../../helpers';
 import { useTranslation } from 'react-i18next';
-import { UserContext } from '../../context/User';
-import { useContext } from 'react';
 
 // ============================================
 // PRICING TIERS
@@ -85,48 +82,71 @@ const PricingGrid = ({ isZh, onSelectPackage, selected }) => (
         {isZh ? '充值越多，赠送越多' : 'More credit, more bonus'}
       </span>
     </Header>
-    <Grid columns={3} doubling stackable style={{ margin: '0 auto' }}>
+    <Grid columns={3} doubling stackable stretched style={{ margin: '0 auto' }}>
       {PRICING_PACKAGES.map(pkg => (
-        <Grid.Column key={pkg.amount}>
+        <Grid.Column key={pkg.amount} style={{ display: 'flex' }}>
           <div
             onClick={() => onSelectPackage(pkg.amount)}
             className="techdou-pricing-card"
             style={{
-              padding: '28px 24px',
+              padding: '32px 24px',
               cursor: 'pointer',
               border: selected === pkg.amount
                 ? '2px solid var(--brand-primary) !important'
                 : '1.5px solid var(--border-subtle) !important',
               background: selected === pkg.amount ? 'var(--brand-bg)' : 'var(--bg-surface)',
               textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              position: 'relative',
+              justifyContent: 'center',
             }}
           >
             {pkg.popular && (
-              <span className="techdou-pricing-badge" style={{ position: 'static', marginBottom: '12px', display: 'inline-block' }}>
+              <span 
+                className="techdou-pricing-badge" 
+                style={{ 
+                  position: 'absolute', 
+                  top: '12px', 
+                  left: '50%', 
+                  transform: 'translateX(-50%)',
+                  margin: 0,
+                  zIndex: 2
+                }}
+              >
                 {isZh ? '推荐' : 'POPULAR'}
               </span>
             )}
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
-              {pkg.label}
-            </div>
-            <div className="techdou-price" style={{ fontSize: '2.2rem !important', color: 'var(--text-primary) !important' }}>
-              <span className="currency">$</span>{pkg.amount}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
-              = {pkg.amount + pkg.bonus} Credits
-            </div>
-            {pkg.bonus > 0 && (
-              <div className="badge badge-success" style={{ marginTop: '14px', fontSize: '11px' }}>
-                +{pkg.bonus} {isZh ? '赠送' : 'Bonus'}
+            <div style={{ marginTop: pkg.popular ? '12px' : '0' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+                {pkg.label}
               </div>
-            )}
-            {selected === pkg.amount && (
-              <div style={{ marginTop: '16px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: '14px' }}>
-                  <i className="check icon" style={{ margin: 0, fontSize: '12px' }} />
+              <div className="techdou-price" style={{ fontSize: '2.2rem !important', color: 'var(--text-primary) !important' }}>
+                <span className="currency">$</span>{pkg.amount}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
+                = {pkg.amount + pkg.bonus} Credits
+              </div>
+            </div>
+
+            <div style={{ minHeight: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: '12px' }}>
+              {pkg.bonus > 0 ? (
+                <div className="badge badge-success" style={{ fontSize: '11px' }}>
+                  +{pkg.bonus} {isZh ? '赠送' : 'Bonus'}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div style={{ height: '22px' }} /> /* Blank space for alignment */
+              )}
+              
+              {selected === pkg.amount && (
+                <div style={{ marginTop: '12px' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: '14px' }}>
+                    <i className="check icon" style={{ margin: 0, fontSize: '12px' }} />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </Grid.Column>
       ))}
@@ -346,22 +366,18 @@ const RedeemPanel = ({ isZh }) => {
 // MAIN TOPUP PAGE
 // ============================================
 const TopUp = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
-  const [userState] = useContext(UserContext);
   const [quota, setQuota] = useState(0);
   const [stripeAmount, setStripeAmount] = useState(50);
   const [alipayAmount, setAlipayAmount] = useState(100);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [alipayLoading, setAlipayLoading] = useState(false);
-  const [topUpLink, setTopUpLink] = useState('');
-  const [user, setUser] = useState({});
-
   const getUserQuota = async () => {
     try {
       const res = await API.get('/api/user/self');
       const { success, data } = res.data;
-      if (success) { setQuota(data.quota); setUser(data); }
+      if (success) { setQuota(data.quota); }
     } catch {}
   };
 
@@ -389,18 +405,7 @@ const TopUp = () => {
     finally { setAlipayLoading(false); }
   };
 
-  const openTopUpLink = () => {
-    if (!topUpLink) { showInfo(isZh ? '暂无可用充值链接' : 'No top-up link configured'); return; }
-    const url = new URL(topUpLink);
-    url.searchParams.append('username', user.username);
-    url.searchParams.append('user_id', user.id);
-    url.searchParams.append('transaction_id', crypto.randomUUID());
-    window.open(url.toString(), '_blank');
-  };
-
   useEffect(() => {
-    const status = JSON.parse(localStorage.getItem('status') || '{}');
-    if (status.top_up_link) setTopUpLink(status.top_up_link);
     getUserQuota();
   }, []);
 

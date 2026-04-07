@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Button, Dropdown, Form, Input, Label, Message, Pagination, Popup, Table,} from 'semantic-ui-react';
 import {Link} from 'react-router-dom';
@@ -84,11 +84,10 @@ const ChannelsTable = () => {
   const [activePage, setActivePage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searching, setSearching] = useState(false);
-  const [updatingBalance, setUpdatingBalance] = useState(false);
   const [showPrompt, setShowPrompt] = useState(shouldShowPrompt(promptID));
   const [showDetail, setShowDetail] = useState(isShowDetail());
 
-  const processChannelData = (channel) => {
+  const processChannelData = useCallback((channel) => {
     if (channel.models === '') {
       channel.models = [];
       channel.test_model = '';
@@ -104,32 +103,32 @@ const ChannelsTable = () => {
           value: model,
         };
       });
-      console.log('channel', channel);
     }
     return channel;
-  };
+  }, []);
 
-  const loadChannels = async (startIdx) => {
+  const loadChannels = useCallback(async (startIdx) => {
     const res = await API.get(`/api/channel/?p=${startIdx}`);
     const { success, message, data } = res.data;
     if (success) {
       let localChannels = data.map(processChannelData);
-      if (startIdx === 0) {
-        setChannels(localChannels);
-      } else {
-        let newChannels = [...channels];
+      setChannels((currentChannels) => {
+        if (startIdx === 0) {
+          return localChannels;
+        }
+        let newChannels = [...currentChannels];
         newChannels.splice(
           startIdx * ITEMS_PER_PAGE,
           data.length,
           ...localChannels
         );
-        setChannels(newChannels);
-      }
+        return newChannels;
+      });
     } else {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [processChannelData]);
 
   const onPaginationChange = (e, { activePage }) => {
     (async () => {
@@ -158,7 +157,7 @@ const ChannelsTable = () => {
         showError(reason);
       });
     loadChannelModels().then();
-  }, []);
+  }, [loadChannels]);
 
   const manageChannel = async (id, action, idx, value) => {
     let data = { id };
@@ -192,6 +191,8 @@ const ChannelsTable = () => {
         }
         res = await API.put('/api/channel/', data);
         break;
+      default:
+        return;
     }
     const { success, message } = res.data;
     if (success) {
@@ -372,18 +373,6 @@ const ChannelsTable = () => {
     } else {
       showError(message);
     }
-  };
-
-  const updateAllChannelsBalance = async () => {
-    setUpdatingBalance(true);
-    const res = await API.get(`/api/channel/update_balance`);
-    const { success, message } = res.data;
-    if (success) {
-      showInfo(t('channel.messages.all_balance_updated'));
-    } else {
-      showError(message);
-    }
-    setUpdatingBalance(false);
   };
 
   const handleKeywordChange = async (e, { value }) => {

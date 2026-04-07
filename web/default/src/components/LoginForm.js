@@ -8,7 +8,6 @@ import {
   Image,
   Message,
   Modal,
-  Segment,
   Card,
 } from 'semantic-ui-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -25,11 +24,10 @@ const LoginForm = () => {
     password: '',
     wechat_verification_code: '',
   });
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [submitted, setSubmitted] = useState(false);
+  const [searchParams] = useSearchParams();
   const { username, password } = inputs;
-  const [userState, userDispatch] = useContext(UserContext);
-  let navigate = useNavigate();
+  const [, userDispatch] = useContext(UserContext);
+  const navigate = useNavigate();
   const [status, setStatus] = useState({});
   const logo = getLogo();
 
@@ -42,7 +40,7 @@ const LoginForm = () => {
       status = JSON.parse(status);
       setStatus(status);
     }
-  }, []);
+  }, [searchParams, t]);
 
   const [showWeChatLoginModal, setShowWeChatLoginModal] = useState(false);
 
@@ -72,7 +70,6 @@ const LoginForm = () => {
   }
 
   async function handleSubmit(e) {
-    setSubmitted(true);
     if (username && password) {
       const res = await API.post(`/api/user/login`, {
         username,

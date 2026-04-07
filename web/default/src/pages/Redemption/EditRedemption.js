@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Card } from 'semantic-ui-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API, downloadTextAsFile, showError, showSuccess } from '../../helpers';
-import { renderQuota, renderQuotaWithPrompt } from '../../helpers/render';
+import { renderQuotaWithPrompt } from '../../helpers/render';
 
 const EditRedemption = () => {
   const { t } = useTranslation();
@@ -28,7 +28,7 @@ const EditRedemption = () => {
     setInputs((inputs) => ({ ...inputs, [name]: value }));
   };
 
-  const loadRedemption = async () => {
+  const loadRedemption = useCallback(async () => {
     let res = await API.get(`/api/redemption/${redemptionId}`);
     const { success, message, data } = res.data;
     if (success) {
@@ -37,12 +37,12 @@ const EditRedemption = () => {
       showError(message);
     }
     setLoading(false);
-  };
+  }, [redemptionId]);
   useEffect(() => {
     if (isEdit) {
       loadRedemption().then();
     }
-  }, []);
+  }, [isEdit, loadRedemption]);
 
   const submit = async () => {
     if (!isEdit && inputs.name === '') return;
