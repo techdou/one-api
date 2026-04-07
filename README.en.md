@@ -8,9 +8,9 @@
 
 <div align="center">
 
-# TechDou — Global AI API Gateway
+# 瓦兰卡 (Valanka) — Global AI API Gateway
 
-_✨ One unified API, access 100+ state-of-the-art AI models globally ✨_
+_✨ One unified API, access 100+ state-of-the-art AI models globally · Premium Design ✨_
 
 </div>
 
@@ -48,10 +48,11 @@ _✨ One unified API, access 100+ state-of-the-art AI models globally ✨_
 
 - 🌐 **100+ Models** — OpenAI / Claude / Gemini / DeepSeek / Mistral / Llama & more
 - ⚡ **Plug & Play** — OpenAI SDK compatible. Change Base URL and you're live
-- 💳 **Stripe / Alipay** — Visa, Mastercard, Apple Pay, Alipay. Instant top-up
-- 🔒 **Enterprise Security** — Granular rate limits, per-token auth, end-to-end HTTPS
-- 📊 **Usage Dashboard** — Real-time stats, cost breakdown, model distribution
+- 💎 **Premium UI/UX** — Brand new glassmorphism visual style, smooth transitions, and dark mode support
+- 📱 **Fully Responsive** — Deeply optimized for iPad, tablets, and mobile devices (no menu overlap)
+- 💳 **Stripe / Alipay** — Visa, Mastercard, Apple Pay, Alipay. Instant top-up, no monthly fees
 - 🛠 **High Availability** — Multi-channel redundancy, automatic failover, 99.9% SLA
+- 📊 **Usage Dashboard** — Real-time stats, cost breakdown, and user behavior analysis
 
 ## Quick Start
 
@@ -116,6 +117,7 @@ Works with **Python / Node.js / Go / Java / Ruby / PHP** and any OpenAI SDK-comp
 |----------|-------------|---------|
 | `SQL_DSN` | MySQL connection | `root:123456@tcp(localhost:3306)/one-api` |
 | `SESSION_SECRET` | Session secret | Random string |
+| `SERVER_ADDRESS` | Public server address (Required for pay callback) | `https://api.valanka.com` |
 | `STRIPE_SECRET_KEY` | Stripe Secret Key | `sk_live_xxx` |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Secret | `whsec_xxx` |
 | `ALIPAY_APP_ID` | Alipay AppId | `2021xxx` |
@@ -160,7 +162,7 @@ A: Contact support for issues. Processing within 7 business days.
 
 ## Built on one-api
 
-TechDou is built on [one-api](https://github.com/songquanpeng/one-api) with Stripe/Alipay payments, custom branding, and overseas market optimizations.
+Valanka is built on [one-api](https://github.com/songquanpeng/one-api), featuring visual reconstruction, functional enhancements, and overseas market optimizations.
 
 MIT Licensed.
 

@@ -8,9 +8,9 @@
 
 <div align="center">
 
-# TechDou — 全球 AI API 网关
+# 瓦兰卡 (Valanka) — 全球 AI API 网关
 
-_✨ One unified API, access 100+ state-of-the-art AI models globally ✨_
+_✨ 一个接口访问全球 100+ 顶级 AI 模型 · 极致设计的 API 分发系统 ✨_
 
 </div>
 
@@ -48,10 +48,11 @@ _✨ One unified API, access 100+ state-of-the-art AI models globally ✨_
 
 - 🌐 **100+ 模型聚合** — OpenAI / Claude / Gemini / DeepSeek / Mistral / Llama 等，一个 API 全搞定
 - ⚡ **极速接入** — OpenAI SDK 兼容，更换 Base URL 即可，零代码改动
-- 💳 **Stripe / 支付宝** — 国际信用卡、支付宝即时充值，无最低消费
-- 🔒 **企业级安全** — 精确限流、Token 鉴权、全链路 HTTPS
-- 📊 **实时数据看板** — 用量统计、消费明细、模型分布
+- 💎 **Premium UI/UX** — 全新极致毛玻璃视觉风格，平滑过渡动画，深色模式完美支持
+- 📱 **全端适配** — 针对 iPad、平板、手机深度优化响应式布局，告别导航遮挡
+- 💳 **Stripe / 支付宝** — 国际信用卡、支付宝即时充值，自动到账，无最低消费
 - 🛠 **高可用架构** — 多通道冗余、自动 Failover、99.9% SLA
+- 📊 **实时数据面板** — 消费明细、模型分布、用户行为全解析
 
 ## 快速开始
 
@@ -116,11 +117,12 @@ print(chat.choices[0].message)
 |------|------|------|
 | `SQL_DSN` | MySQL 数据库连接 | `root:123456@tcp(localhost:3306)/one-api` |
 | `SESSION_SECRET` | 会话密钥 | 随机字符串 |
-| `STRIPE_SECRET_KEY` | Stripe API Key | `sk_live_xxx` |
-| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook | `whsec_xxx` |
+| `SERVER_ADDRESS` | 服务器公网地址（支付回调必填） | `https://api.valanka.com` |
+| `STRIPE_SECRET_KEY` | Stripe API Secret Key | `sk_live_xxx` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook 签名密钥 | `whsec_xxx` |
 | `ALIPAY_APP_ID` | 支付宝 AppId | `2021xxx` |
-| `ALIPAY_PRIVATE_KEY` | 支付宝私钥 | — |
-| `ALIPAY_PUBLIC_KEY` | 支付宝公钥 | — |
+| `ALIPAY_PRIVATE_KEY` | 支付宝商户私钥 | — |
+| `ALIPAY_PUBLIC_KEY` | 支付宝公钥（验证回调） | — |
 | `PAY_RATE_RMB` | 美元兑人民币汇率 | `7.2` |
 | `THEME` | 主题，默认为 `default` | `default` |
 
@@ -160,7 +162,7 @@ A: 如有质量问题请联系客服，7 个工作日内处理。
 
 ## 基于 one-api 构建
 
-本项目基于 [one-api](https://github.com/songquanpeng/one-api) 构建，增加了 Stripe/Alipay 支付、品牌定制和出海专属优化。
+本项目基于 [one-api](https://github.com/songquanpeng/one-api) 开发，由 **瓦兰卡 (Valanka)** 团队进行视觉重构、功能增强及出海优化。
 
 MIT 协议开源。
 
